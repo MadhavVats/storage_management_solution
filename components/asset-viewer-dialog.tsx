@@ -6,8 +6,7 @@ import {
   DialogContent,
   DialogTitle,
 } from "./ui/dialog"
-import { Annotorious, ImageAnnotator } from '@annotorious/react'
-import '@annotorious/react/annotorious-react.css'
+import { AnnotatedImage } from "./annotated-image"
 
 type AssetType = 'image' | 'video'
 
@@ -37,15 +36,7 @@ export function AssetViewerDialog({
             {type === 'image' ? (
               <div className="w-full h-[70vh] max-h-[800px] flex items-center justify-center p-4">
                 <div className="relative w-full h-full max-w-full max-h-full">
-                  <Annotorious>
-                    <ImageAnnotator>
-                      <img
-                        src={src}
-                        alt={name}
-                        className="max-w-full max-h-full w-auto h-auto object-contain mx-auto block"
-                      />
-                    </ImageAnnotator>
-                  </Annotorious>
+                  <AnnotatedImage src={src} alt={name} />
                 </div>
               </div>
             ) : (
