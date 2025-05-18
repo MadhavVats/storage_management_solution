@@ -6,7 +6,8 @@ import {
   DialogContent,
   DialogTitle,
 } from "./ui/dialog"
-import Image from "next/image"
+import { Annotorious, ImageAnnotator } from '@annotorious/react'
+import '@annotorious/react/annotorious-react.css'
 
 type AssetType = 'image' | 'video'
 
@@ -34,14 +35,18 @@ export function AssetViewerDialog({
         <div className="flex items-center justify-center h-full">
           <div className="max-h-[85vh] w-full overflow-y-auto p-4">
             {type === 'image' ? (
-              <div className="relative w-full h-[70vh] max-h-[800px] flex items-center justify-center">
-                <Image
-                  src={src}
-                  alt={name}
-                  fill
-                  className="object-contain"
-                  unoptimized={src.startsWith('blob:')}
-                />
+              <div className="w-full h-[70vh] max-h-[800px] flex items-center justify-center p-4">
+                <div className="relative w-full h-full max-w-full max-h-full">
+                  <Annotorious>
+                    <ImageAnnotator>
+                      <img
+                        src={src}
+                        alt={name}
+                        className="max-w-full max-h-full w-auto h-auto object-contain mx-auto block"
+                      />
+                    </ImageAnnotator>
+                  </Annotorious>
+                </div>
               </div>
             ) : (
               <video
