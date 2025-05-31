@@ -27,29 +27,27 @@ export function AssetViewerDialog({
 }: AssetViewerDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] p-0 overflow-hidden">
+      <DialogContent className="max-w-6xl max-h-[95vh] p-0 overflow-hidden flex flex-col">
         <DialogTitle className="sr-only">
           {`Viewing ${name}`}
         </DialogTitle>
-        <div className="flex items-center justify-center h-full">
-          <div className="max-h-[85vh] w-full overflow-y-auto p-4">
-            {type === 'image' ? (
-              <div className="w-full h-[70vh] max-h-[800px] flex items-center justify-center p-4">
-                <div className="relative w-full h-full max-w-full max-h-full">
-                  <AnnotatedImage src={src} alt={name} />
-                </div>
-              </div>
-            ) : (
+        <div className="flex-1 flex items-center justify-center min-h-0">
+          {type === 'image' ? (
+            <div className="w-full h-full flex items-center justify-center p-6">
+              <AnnotatedImage src={src} alt={name} />
+            </div>
+          ) : (
+            <div className="w-full h-full flex items-center justify-center p-6">
               <video
                 src={src}
                 controls
-                className="w-full max-h-[80vh] max-w-4xl mx-auto"
+                className="max-w-full max-h-full object-contain"
                 controlsList="nodownload"
               >
                 Your browser does not support the video tag.
               </video>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>
