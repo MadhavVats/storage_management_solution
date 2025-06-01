@@ -7,6 +7,7 @@ import {
   DialogTitle,
 } from "./ui/dialog"
 import { AnnotatedImage } from "./annotated-image"
+import CommentsSystem from "../comments-system"
 
 type AssetType = 'image' | 'video'
 
@@ -33,9 +34,7 @@ export function AssetViewerDialog({
         </DialogTitle>
         <div className="flex-1 flex items-center justify-center min-h-0">
           {type === 'image' ? (
-            <div className="w-full h-full flex items-center justify-center p-6">
-              <AnnotatedImage src={src} alt={name} />
-            </div>
+            <CommentsSystem src={src} name={name} />
           ) : (
             <div className="w-full h-full flex items-center justify-center p-6">
               <video
