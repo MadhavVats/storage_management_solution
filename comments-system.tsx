@@ -45,7 +45,7 @@ function CommentThread({ comment, onResolve, onReply, onDelete }: CommentThreadP
   }
 
   return (
-    <Card className={`w-full mb-4 ${comment.resolved ? "opacity-70 bg-gray-50" : "bg-white"} shadow-sm border border-gray-200`}>
+    <Card className={`w-full ${comment.resolved ? "opacity-70 bg-gray-50" : "bg-white"} shadow-sm border border-gray-200`}>
       <CardContent className="p-4 space-y-4">
         {/* Main Comment */}
         <div className="space-y-3">
@@ -344,11 +344,11 @@ export default function CommentsSystem({ src, name }: { src: string; name: strin
             <div className="space-y-6 pb-4">
               {/* Active Comments */}
               {unresolvedComments.length > 0 && (
-                <div className="space-y-4">
+                <div className="space-y-0">
                   <h3 className="text-base font-semibold text-gray-800 border-b border-gray-200 pb-2">
                     Active ({unresolvedComments.length})
                   </h3>
-                  <div className="space-y-4">
+                  <div className="space-y-0">
                     {unresolvedComments.map((comment) => (
                       <CommentThread
                         key={comment.id}
@@ -364,11 +364,11 @@ export default function CommentsSystem({ src, name }: { src: string; name: strin
 
               {/* Resolved Comments */}
               {resolvedComments.length > 0 && (
-                <div className="space-y-4 mt-8">
+                <div className="space-y-0 mt-8">
                   <h3 className="text-base font-semibold text-gray-600 border-b border-gray-200 pb-2">
                     Resolved ({resolvedComments.length})
                   </h3>
-                  <div className="space-y-4">
+                  <div className="space-y-0">
                     {resolvedComments.map((comment) => (
                       <CommentThread
                         key={comment.id}
