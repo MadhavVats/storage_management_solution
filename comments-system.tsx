@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import { MessageSquare, Reply } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { CheckIcon, DotsHorizontalIcon, Cross2Icon } from "@radix-ui/react-icons"
@@ -44,35 +45,37 @@ function CommentThread({ comment, onResolve, onReply, onDelete }: CommentThreadP
   }
 
   return (
-    <Card className={`w-80 ${comment.resolved ? "opacity-60" : ""}`}>
-      <CardContent className="p-4 space-y-3">
+    <Card className={`w-full mb-4 ${comment.resolved ? "opacity-70 bg-gray-50" : "bg-white"} shadow-sm border border-gray-200`}>
+      <CardContent className="p-4 space-y-4">
         {/* Main Comment */}
-        <div className="space-y-2">
+        <div className="space-y-3">
           <div className="flex items-start justify-between">
-            <div className="flex items-center gap-2">
-              <Avatar className="w-6 h-6">
+            <div className="flex items-center gap-3">
+              <Avatar className="w-8 h-8">
                 <AvatarImage src={comment.author.avatar || "/placeholder.svg"} />
-                <AvatarFallback className="text-xs">{comment.author.initials}</AvatarFallback>
+                <AvatarFallback className="text-sm font-medium">{comment.author.initials}</AvatarFallback>
               </Avatar>
-              <span className="text-sm font-medium">{comment.author.name}</span>
-              <span className="text-xs text-muted-foreground">{comment.timestamp}</span>
+              <div className="flex flex-col">
+                <span className="text-sm font-semibold">{comment.author.name}</span>
+                <span className="text-xs text-gray-500">{comment.timestamp}</span>
+              </div>
             </div>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                  <DotsHorizontalIcon className="h-3 w-3" />
+                <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-gray-100">
+                  <DotsHorizontalIcon className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={() => onResolve(comment.id)}>
                   {comment.resolved ? (
                     <>
-                      <Cross2Icon className="h-3 w-3 mr-2" />
+                      <Cross2Icon className="h-4 w-4 mr-2" />
                       Reopen
                     </>
                   ) : (
                     <>
-                      <CheckIcon className="h-3 w-3 mr-2" />
+                      <CheckIcon className="h-4 w-4 mr-2" />
                       Resolve
                     </>
                   )}
@@ -84,10 +87,10 @@ function CommentThread({ comment, onResolve, onReply, onDelete }: CommentThreadP
             </DropdownMenu>
           </div>
 
-          <p className="text-sm leading-relaxed">{comment.content}</p>
+          <p className="text-sm leading-relaxed text-gray-700 mt-3">{comment.content}</p>
 
           {comment.resolved && (
-            <Badge variant="secondary" className="text-xs">
+            <Badge variant="secondary" className="text-xs mt-2">
               <CheckIcon className="h-3 w-3 mr-1" />
               Resolved
             </Badge>
@@ -96,18 +99,20 @@ function CommentThread({ comment, onResolve, onReply, onDelete }: CommentThreadP
 
         {/* Replies */}
         {comment.replies.length > 0 && (
-          <div className="space-y-2 pl-4 border-l-2 border-muted">
+          <div className="space-y-3 ml-6 pl-4 border-l-2 border-gray-200 mt-4">
             {comment.replies.map((reply) => (
-              <div key={reply.id} className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <Avatar className="w-5 h-5">
+              <div key={reply.id} className="space-y-2 bg-gray-50 p-3 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <Avatar className="w-6 h-6">
                     <AvatarImage src={reply.author.avatar || "/placeholder.svg"} />
                     <AvatarFallback className="text-xs">{reply.author.initials}</AvatarFallback>
                   </Avatar>
-                  <span className="text-xs font-medium">{reply.author.name}</span>
-                  <span className="text-xs text-muted-foreground">{reply.timestamp}</span>
+                  <div className="flex flex-col">
+                    <span className="text-xs font-medium">{reply.author.name}</span>
+                    <span className="text-xs text-gray-500">{reply.timestamp}</span>
+                  </div>
                 </div>
-                <p className="text-xs leading-relaxed pl-7">{reply.content}</p>
+                <p className="text-sm leading-relaxed text-gray-700 ml-9">{reply.content}</p>
               </div>
             ))}
           </div>
@@ -115,15 +120,15 @@ function CommentThread({ comment, onResolve, onReply, onDelete }: CommentThreadP
 
         {/* Reply Input */}
         {isReplying ? (
-          <div className="space-y-2 pl-4">
+          <div className="space-y-3 ml-6 pl-4 border-l-2 border-blue-200 bg-blue-50 p-4 rounded-lg">
             <Textarea
               placeholder="Write a reply..."
               value={replyContent}
               onChange={(e) => setReplyContent(e.target.value)}
-              className="min-h-[60px] text-sm"
+              className="min-h-[80px] text-sm border-blue-200 focus:border-blue-400"
             />
             <div className="flex gap-2">
-              <Button size="sm" onClick={handleReply}>
+              <Button size="sm" onClick={handleReply} className="bg-blue-600 hover:bg-blue-700">
                 Reply
               </Button>
               <Button size="sm" variant="ghost" onClick={() => setIsReplying(false)}>
@@ -133,8 +138,13 @@ function CommentThread({ comment, onResolve, onReply, onDelete }: CommentThreadP
           </div>
         ) : (
           !comment.resolved && (
-            <Button variant="ghost" size="sm" onClick={() => setIsReplying(true)} className="h-7 text-xs">
-              <Reply className="h-3 w-3 mr-1" />
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => setIsReplying(true)} 
+              className="h-8 text-sm mt-3 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+            >
+              <Reply className="h-4 w-4 mr-2" />
               Reply
             </Button>
           )
@@ -282,39 +292,43 @@ export default function CommentsSystem({ src, name }: { src: string; name: strin
   const resolvedComments = comments.filter((c) => c.resolved)
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <div className="flex gap-8">
-        {/* Main Content Area */}
-        <div className="flex-1">
-          <div className="w-full h-full">
+    <div className="w-full h-screen p-6">
+      <div className="flex gap-6 h-full">
+        {/* Main Content Area - 80% */}
+        <div className="w-4/5 pr-4">
+          <div className="w-full h-full bg-gray-50 rounded-lg p-4">
             <AnnotatedImage src={src} alt={name} />
           </div>
         </div>
 
-        {/* Comments Sidebar */}
-        <div className="w-96 space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold flex items-center gap-2">
-              <MessageSquare className="h-5 w-5" />
+        {/* Comments Sidebar - 20% */}
+        <div className="w-1/5 min-w-80 pl-4 border-l border-gray-200 flex flex-col h-full">
+          <div className="flex items-center justify-between mb-6 flex-shrink-0">
+            <h2 className="text-xl font-bold flex items-center gap-3">
+              <MessageSquare className="h-6 w-6 text-blue-600" />
               Comments
             </h2>
-            <Button size="sm" onClick={() => setShowNewComment(true)} className="h-8">
+            <Button 
+              size="sm" 
+              onClick={() => setShowNewComment(true)} 
+              className="h-9 px-4 bg-blue-600 hover:bg-blue-700"
+            >
               Add Comment
             </Button>
           </div>
 
           {/* New Comment Form */}
           {showNewComment && (
-            <Card>
-              <CardContent className="p-4 space-y-3">
+            <Card className="mb-6 border-blue-200 shadow-sm flex-shrink-0">
+              <CardContent className="p-4 space-y-4">
                 <Textarea
                   placeholder="Add a comment..."
                   value={newComment}
                   onChange={(e) => setNewComment(e.target.value)}
-                  className="min-h-[80px]"
+                  className="min-h-[100px] border-blue-200 focus:border-blue-400"
                 />
                 <div className="flex gap-2">
-                  <Button size="sm" onClick={handleAddComment}>
+                  <Button size="sm" onClick={handleAddComment} className="bg-blue-600 hover:bg-blue-700">
                     Comment
                   </Button>
                   <Button size="sm" variant="ghost" onClick={() => setShowNewComment(false)}>
@@ -325,44 +339,58 @@ export default function CommentsSystem({ src, name }: { src: string; name: strin
             </Card>
           )}
 
-          {/* Active Comments */}
-          {unresolvedComments.length > 0 && (
-            <div className="space-y-3">
-              <h3 className="text-sm font-medium text-muted-foreground">Active ({unresolvedComments.length})</h3>
-              {unresolvedComments.map((comment) => (
-                <CommentThread
-                  key={comment.id}
-                  comment={comment}
-                  onResolve={handleResolve}
-                  onReply={handleReply}
-                  onDelete={handleDelete}
-                />
-              ))}
-            </div>
-          )}
+          {/* Scrollable Comments Area */}
+          <ScrollArea className="flex-1 pr-2 h-0">
+            <div className="space-y-6 pb-4">
+              {/* Active Comments */}
+              {unresolvedComments.length > 0 && (
+                <div className="space-y-4">
+                  <h3 className="text-base font-semibold text-gray-800 border-b border-gray-200 pb-2">
+                    Active ({unresolvedComments.length})
+                  </h3>
+                  <div className="space-y-4">
+                    {unresolvedComments.map((comment) => (
+                      <CommentThread
+                        key={comment.id}
+                        comment={comment}
+                        onResolve={handleResolve}
+                        onReply={handleReply}
+                        onDelete={handleDelete}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
 
-          {/* Resolved Comments */}
-          {resolvedComments.length > 0 && (
-            <div className="space-y-3">
-              <h3 className="text-sm font-medium text-muted-foreground">Resolved ({resolvedComments.length})</h3>
-              {resolvedComments.map((comment) => (
-                <CommentThread
-                  key={comment.id}
-                  comment={comment}
-                  onResolve={handleResolve}
-                  onReply={handleReply}
-                  onDelete={handleDelete}
-                />
-              ))}
-            </div>
-          )}
+              {/* Resolved Comments */}
+              {resolvedComments.length > 0 && (
+                <div className="space-y-4 mt-8">
+                  <h3 className="text-base font-semibold text-gray-600 border-b border-gray-200 pb-2">
+                    Resolved ({resolvedComments.length})
+                  </h3>
+                  <div className="space-y-4">
+                    {resolvedComments.map((comment) => (
+                      <CommentThread
+                        key={comment.id}
+                        comment={comment}
+                        onResolve={handleResolve}
+                        onReply={handleReply}
+                        onDelete={handleDelete}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
 
-          {comments.length === 0 && (
-            <div className="text-center py-8 text-muted-foreground">
-              <MessageSquare className="h-8 w-8 mx-auto mb-2 opacity-50" />
-              <p className="text-sm">No comments yet</p>
+              {comments.length === 0 && (
+                <div className="text-center py-12 text-gray-500">
+                  <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p className="text-base">No comments yet</p>
+                  <p className="text-sm text-gray-400 mt-1">Be the first to add a comment!</p>
+                </div>
+              )}
             </div>
-          )}
+          </ScrollArea>
         </div>
       </div>
     </div>
