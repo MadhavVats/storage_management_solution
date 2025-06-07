@@ -302,93 +302,95 @@ export default function CommentsSystem({ src, name }: { src: string; name: strin
         </div>
 
         {/* Comments Sidebar - 20% */}
-        <div className="w-1/5 min-w-80 pl-4 border-l border-gray-200 flex flex-col h-full">
-          <div className="flex items-center justify-between mb-6 flex-shrink-0">
-            <h2 className="text-xl font-bold flex items-center gap-3">
-              <MessageSquare className="h-6 w-6 text-blue-600" />
-              Comments
-            </h2>
-            <Button 
-              size="sm" 
-              onClick={() => setShowNewComment(true)} 
-              className="h-9 px-4 bg-blue-600 hover:bg-blue-700"
-            >
-              Add Comment
-            </Button>
-          </div>
+        <div className="w-1/5 min-w-80 pl-4 border-l border-gray-200 flex flex-col h-full overflow-hidden">
+          <ScrollArea className="flex-1 h-full">
+            <div className="p-4 space-y-6">
+              <div className="flex items-center justify-between flex-shrink-0">
+                <h2 className="text-xl font-bold flex items-center gap-3">
+                  <MessageSquare className="h-6 w-6 text-blue-600" />
+                  Comments
+                </h2>
+                <Button 
+                  size="sm" 
+                  onClick={() => setShowNewComment(true)} 
+                  className="h-9 px-4 bg-blue-600 hover:bg-blue-700"
+                >
+                  Add Comment
+                </Button>
+              </div>
 
-          {/* New Comment Form */}
-          {showNewComment && (
-            <Card className="mb-6 border-blue-200 shadow-sm flex-shrink-0">
-              <CardContent className="p-4 space-y-4">
-                <Textarea
-                  placeholder="Add a comment..."
-                  value={newComment}
-                  onChange={(e) => setNewComment(e.target.value)}
-                  className="min-h-[100px] border-blue-200 focus:border-blue-400"
-                />
-                <div className="flex gap-2">
-                  <Button size="sm" onClick={handleAddComment} className="bg-blue-600 hover:bg-blue-700">
-                    Comment
-                  </Button>
-                  <Button size="sm" variant="ghost" onClick={() => setShowNewComment(false)}>
-                    Cancel
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+              {/* New Comment Form */}
+              {showNewComment && (
+                <Card className="border-blue-200 shadow-sm flex-shrink-0">
+                  <CardContent className="p-4 space-y-4">
+                    <Textarea
+                      placeholder="Add a comment..."
+                      value={newComment}
+                      onChange={(e) => setNewComment(e.target.value)}
+                      className="min-h-[100px] border-blue-200 focus:border-blue-400"
+                    />
+                    <div className="flex gap-2">
+                      <Button size="sm" onClick={handleAddComment} className="bg-blue-600 hover:bg-blue-700">
+                        Comment
+                      </Button>
+                      <Button size="sm" variant="ghost" onClick={() => setShowNewComment(false)}>
+                        Cancel
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
 
-          {/* Scrollable Comments Area */}
-          <ScrollArea className="flex-1 pr-2 h-0">
-            <div className="space-y-6 pb-4">
-              {/* Active Comments */}
-              {unresolvedComments.length > 0 && (
-                <div className="space-y-0">
-                  <h3 className="text-base font-semibold text-gray-800 border-b border-gray-200 pb-2">
-                    Active ({unresolvedComments.length})
-                  </h3>
-                  <div className="space-y-0">
-                    {unresolvedComments.map((comment) => (
-                      <CommentThread
-                        key={comment.id}
-                        comment={comment}
-                        onResolve={handleResolve}
-                        onReply={handleReply}
-                        onDelete={handleDelete}
-                      />
-                    ))}
+              {/* Comments Content */}
+              <div className="space-y-6">
+                {/* Active Comments */}
+                {unresolvedComments.length > 0 && (
+                  <div className="space-y-4">
+                    <h3 className="text-base font-semibold text-gray-800 border-b border-gray-200 pb-2">
+                      Active ({unresolvedComments.length})
+                    </h3>
+                    <div className="space-y-4">
+                      {unresolvedComments.map((comment) => (
+                        <CommentThread
+                          key={comment.id}
+                          comment={comment}
+                          onResolve={handleResolve}
+                          onReply={handleReply}
+                          onDelete={handleDelete}
+                        />
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {/* Resolved Comments */}
-              {resolvedComments.length > 0 && (
-                <div className="space-y-0 mt-8">
-                  <h3 className="text-base font-semibold text-gray-600 border-b border-gray-200 pb-2">
-                    Resolved ({resolvedComments.length})
-                  </h3>
-                  <div className="space-y-0">
-                    {resolvedComments.map((comment) => (
-                      <CommentThread
-                        key={comment.id}
-                        comment={comment}
-                        onResolve={handleResolve}
-                        onReply={handleReply}
-                        onDelete={handleDelete}
-                      />
-                    ))}
+                {/* Resolved Comments */}
+                {resolvedComments.length > 0 && (
+                  <div className="space-y-4">
+                    <h3 className="text-base font-semibold text-gray-600 border-b border-gray-200 pb-2">
+                      Resolved ({resolvedComments.length})
+                    </h3>
+                    <div className="space-y-4">
+                      {resolvedComments.map((comment) => (
+                        <CommentThread
+                          key={comment.id}
+                          comment={comment}
+                          onResolve={handleResolve}
+                          onReply={handleReply}
+                          onDelete={handleDelete}
+                        />
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {comments.length === 0 && (
-                <div className="text-center py-12 text-gray-500">
-                  <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p className="text-base">No comments yet</p>
-                  <p className="text-sm text-gray-400 mt-1">Be the first to add a comment!</p>
-                </div>
-              )}
+                {comments.length === 0 && (
+                  <div className="text-center py-12 text-gray-500">
+                    <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p className="text-base">No comments yet</p>
+                    <p className="text-sm text-gray-400 mt-1">Be the first to add a comment!</p>
+                  </div>
+                )}
+              </div>
             </div>
           </ScrollArea>
         </div>
