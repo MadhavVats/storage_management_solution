@@ -311,7 +311,6 @@ export default function CommentsSystem({ src, name }: { src: string; name: strin
             <Button 
               size="sm" 
               onClick={() => setShowNewComment(true)} 
-              className="h-9 px-4 bg-black hover:bg-gray-800 text-white"
             >
               Add Comment
             </Button>
@@ -330,7 +329,7 @@ export default function CommentsSystem({ src, name }: { src: string; name: strin
                       className="min-h-[100px] border-blue-200 focus:border-blue-400"
                     />
                     <div className="flex gap-2">
-                      <Button size="sm" onClick={handleAddComment} className="bg-black hover:bg-gray-800 text-white">
+                      <Button size="sm" onClick={handleAddComment}>
                         Comment
                       </Button>
                       <Button size="sm" variant="ghost" onClick={() => setShowNewComment(false)}>
