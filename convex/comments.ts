@@ -1,9 +1,25 @@
 import { v } from "convex/values";
-import { query, mutation } from "./_generated/server";
+import { mutation, query } from "./_generated/server";
+import { Id } from "./_generated/dataModel";
+
+// Helper to recursively fetch replies (if your schema stores them flatly)
+// This is a conceptual helper. Actual fetching might be more complex
+// depending on how you structure replies and want to limit depth/recursion.
+async function fetchReplies(db: any, commentId: Id<"comments">): Promise<any[]> {
+  const replies = await db
+    .query("comments")
+    .withIndex("by_parentId", (q: any) => q.eq("parentId", commentId))
+    .collect();
+  
+  for (const reply of replies) {
+    reply.replies = await fetchReplies(db, reply._id);
+  }
+  return replies;
+}
 
 // Query to get all comments for a specific document
 export const getComments = query({
-  args: { 
+  args: {
     documentId: v.optional(v.string()),
     documentSrc: v.optional(v.string()) 
   },
@@ -50,25 +66,25 @@ export const addComment = mutation({
   args: {
     content: v.string(),
     authorName: v.string(),
-    authorAvatar: v.optional(v.string()),
     authorInitials: v.string(),
-    documentId: v.optional(v.string()),
+    authorAvatar: v.optional(v.string()),
     documentSrc: v.optional(v.string()),
-    parentId: v.optional(v.id("comments")),
+    documentId: v.optional(v.string()),
+    annotationData: v.optional(v.any()), // Add annotationData here
   },
   handler: async (ctx, args) => {
     const commentId = await ctx.db.insert("comments", {
       content: args.content,
+      authorName: args.authorName,
+      authorInitials: args.authorInitials,
+      authorAvatar: args.authorAvatar,
       timestamp: Date.now(),
       resolved: false,
-      authorName: args.authorName,
-      authorAvatar: args.authorAvatar,
-      authorInitials: args.authorInitials,
-      parentId: args.parentId,
-      documentId: args.documentId,
       documentSrc: args.documentSrc,
+      documentId: args.documentId,
+      annotationData: args.annotationData, // Persist annotationData
+      // parentId is not set here, as this is a top-level comment
     });
-    
     return commentId;
   },
 });
@@ -117,8 +133,9 @@ export const addReply = mutation({
     parentId: v.id("comments"),
     content: v.string(),
     authorName: v.string(),
-    authorAvatar: v.optional(v.string()),
     authorInitials: v.string(),
+    authorAvatar: v.optional(v.string()),
+    // annotationData is not typically added to replies directly, but could be if needed
   },
   handler: async (ctx, args) => {
     // Get the parent comment to inherit document info

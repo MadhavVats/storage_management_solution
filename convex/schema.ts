@@ -19,6 +19,9 @@ export default defineSchema({
     // Associated file/document (you can link this to your file management system)
     documentId: v.optional(v.string()), // This could be the file ID or name
     documentSrc: v.optional(v.string()), // The file source URL
+
+    // New field for Annotorious data
+    annotationData: v.optional(v.any()),
   })
     .index("by_document", ["documentId"])
     .index("by_parent", ["parentId"])

@@ -14,6 +14,8 @@ import { AnnotatedImage } from "@/components/annotated-image"
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api"; // Ensure this path is correct for your project
 import { Id } from "@/convex/_generated/dataModel";
+import { createImageAnnotator } from "@annotorious/annotorious"; // Added import
+import "@annotorious/annotorious/annotorious.css"; // Added import for styles
 
 // Interface for the frontend comment structure
 interface Comment {
@@ -30,6 +32,7 @@ interface Comment {
   documentId?: string;
   documentSrc?: string;
   parentId?: Id<"comments">;
+  annotationData?: any; // Add annotationData here
 }
 
 // Type for individual comment objects coming from the Convex query
@@ -45,6 +48,7 @@ type ConvexCommentItem = {
   parentId?: Id<"comments">;
   documentId?: string;
   documentSrc?: string;
+  annotationData?: any; // Add annotationData here
   replies: ConvexCommentItem[]; // Replies from query are also in this flat structure before transformation
 };
 
@@ -66,6 +70,7 @@ function transformConvexDataToFrontendComments(convexData: ConvexCommentItem[] |
       parentId: commentItem.parentId,
       documentId: commentItem.documentId,
       documentSrc: commentItem.documentSrc,
+      annotationData: commentItem.annotationData, // Add annotationData here
       replies: commentItem.replies ? commentItem.replies.map(mapComment) : [], // Recursively map replies
     };
   };
@@ -229,24 +234,59 @@ export default function CommentsSystem({ src, name }: { src: string; name: strin
 
   const [newComment, setNewComment] = useState("")
   const [showNewComment, setShowNewComment] = useState(false)
+  const [currentAnnotation, setCurrentAnnotation] = useState<any | null>(null); // To store annotation data
 
   // Transform Convex data to the frontend Comment structure using useMemo
   const comments: Comment[] = useMemo(() => transformConvexDataToFrontendComments(commentsData as ConvexCommentItem[] | undefined), [commentsData]);
 
+  useEffect(() => {
+    const imageElement = document.getElementById('annotated-image-element'); // Ensure your AnnotatedImage component renders an img with this ID
+    if (imageElement) {
+      const anno = createImageAnnotator(imageElement as HTMLImageElement);
+      anno.on('createAnnotation', (annotation: any) => {
+        console.log('Annotation created:', annotation);
+        setCurrentAnnotation(annotation); // Store the annotation data
+        setShowNewComment(true); // Show the comment form
+      });
+
+      // Load existing annotations if they are stored with comments
+      const annotationsToLoad = comments
+        .filter(comment => comment.annotationData)
+        .map(comment => comment.annotationData);
+      if (annotationsToLoad.length > 0) {
+        anno.setAnnotations(annotationsToLoad);
+      }
+
+      return () => {
+        anno.destroy(); // Clean up Annotorious instance when component unmounts or src changes
+      };
+    }
+  }, [src, comments]); // Re-initialize if src or comments (with annotations) change
+
   const handleAddComment = async () => {
     if (newComment.trim()) {
-      // IMPORTANT: Replace authorName, authorInitials, and optionally authorAvatar 
-      // with actual authenticated user data.
+      let annotationDataForDb = currentAnnotation;
+      if (currentAnnotation && currentAnnotation.target && currentAnnotation.target.created) {
+        annotationDataForDb = {
+          ...currentAnnotation,
+          target: {
+            ...currentAnnotation.target,
+            created: new Date(currentAnnotation.target.created).getTime(), // Convert to timestamp
+          },
+        };
+      }
+
       await addCommentMutation({
         content: newComment,
-        authorName: "Current User (You)", // Placeholder
-        authorInitials: "YU",          // Placeholder
-        // authorAvatar: "/path/to/user/avatar.png", // Optional
+        authorName: "Current User (You)", 
+        authorInitials: "YU",          
         documentSrc: src,
-        documentId: name, // Assuming 'name' prop can be used as documentId as per schema
+        documentId: name, 
+        annotationData: annotationDataForDb, // Pass modified annotation data
       });
       setNewComment("")
       setShowNewComment(false)
+      setCurrentAnnotation(null); // Reset current annotation
     }
   }
 
@@ -259,7 +299,8 @@ export default function CommentsSystem({ src, name }: { src: string; name: strin
         {/* Main Content Area - 85% */}
         <div className="w-[85%] pr-4">
           <div className="w-full h-full bg-gray-50 rounded-lg p-4">
-            <AnnotatedImage src={src} alt={name} />
+            {/* Ensure AnnotatedImage renders an <img /> tag with id="annotated-image-element" */}
+            <AnnotatedImage src={src} alt={name} id="annotated-image-element" />
           </div>
         </div>
 

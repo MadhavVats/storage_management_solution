@@ -9,7 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@annotorious/annotorious": "^3.3.6",
+    "@annotorious/annotorious": "^3.4.3",
     "@annotorious/react": "^3.3.6",
     "@hookform/resolvers": "^3.9.1",
     "@markerjs/markerjs3": "^3.5.8",

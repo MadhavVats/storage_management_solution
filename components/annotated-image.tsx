@@ -6,6 +6,7 @@ import { useAnnotationLogger } from '../hooks/useAnnotationLogger';
 interface AnnotatedImageProps {
   src: string;
   alt: string;
+  id?: string; // Add id to props interface
   className?: string;
   onAnnotationCreated?: (annotation: any) => void;
   onAnnotationUpdated?: (annotation: any, previous: any) => void;
@@ -16,6 +17,7 @@ interface AnnotatedImageProps {
 export function AnnotatedImage({ 
   src, 
   alt, 
+  id, // Destructure id
   className = "",
   onAnnotationCreated,
   onAnnotationUpdated,
@@ -33,6 +35,7 @@ export function AnnotatedImage({
         />
         <ImageAnnotator>
           <img
+            id={id} // Apply id to img tag
             src={src}
             alt={alt}
             className={`max-w-full max-h-full object-contain ${className}`}
