@@ -28,6 +28,7 @@
     "@shadcn/ui": "^0.0.4",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
+    "convex": "^1.24.8",
     "dotenv": "^16.5.0",
     "input-otp": "^1.2.5",
     "konva": "^9.3.20",

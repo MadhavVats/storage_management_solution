@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useMemo, useEffect } from "react" // Added useMemo, useEffect
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -11,38 +11,104 @@ import { MessageSquare, Reply } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { CheckIcon, DotsHorizontalIcon, Cross2Icon } from "@radix-ui/react-icons"
 import { AnnotatedImage } from "@/components/annotated-image"
+import { useQuery, useMutation } from "convex/react";
+import { api } from "@/convex/_generated/api"; // Ensure this path is correct for your project
+import { Id } from "@/convex/_generated/dataModel";
 
+// Interface for the frontend comment structure
 interface Comment {
-  id: string
+  _id: Id<"comments">;
   author: {
-    name: string
-    avatar: string
-    initials: string
-  }
-  content: string
-  timestamp: string
-  resolved: boolean
-  replies: Comment[]
+    name: string;
+    avatar: string;
+    initials: string;
+  };
+  content: string;
+  timestamp: number;
+  resolved: boolean;
+  replies: Comment[];
+  documentId?: string;
+  documentSrc?: string;
+  parentId?: Id<"comments">;
 }
+
+// Type for individual comment objects coming from the Convex query
+type ConvexCommentItem = {
+  _id: Id<"comments">;
+  _creationTime: number;
+  content: string;
+  timestamp: number;
+  resolved: boolean;
+  authorName: string;
+  authorAvatar?: string;
+  authorInitials: string;
+  parentId?: Id<"comments">;
+  documentId?: string;
+  documentSrc?: string;
+  replies: ConvexCommentItem[]; // Replies from query are also in this flat structure before transformation
+};
+
+// Transformation function
+function transformConvexDataToFrontendComments(convexData: ConvexCommentItem[] | undefined): Comment[] {
+  if (!convexData) return [];
+
+  const mapComment = (commentItem: ConvexCommentItem): Comment => {
+    return {
+      _id: commentItem._id,
+      author: {
+        name: commentItem.authorName,
+        avatar: commentItem.authorAvatar || "/placeholder.svg", // Default avatar
+        initials: commentItem.authorInitials,
+      },
+      content: commentItem.content,
+      timestamp: commentItem.timestamp,
+      resolved: commentItem.resolved,
+      parentId: commentItem.parentId,
+      documentId: commentItem.documentId,
+      documentSrc: commentItem.documentSrc,
+      replies: commentItem.replies ? commentItem.replies.map(mapComment) : [], // Recursively map replies
+    };
+  };
+  return convexData.map(mapComment);
+}
+
 
 interface CommentThreadProps {
-  comment: Comment
-  onResolve: (id: string) => void
-  onReply: (parentId: string, content: string) => void
-  onDelete: (id: string) => void
+  comment: Comment;
+  // documentId and documentSrc removed as they are not directly used by mutations within CommentThread
 }
 
-function CommentThread({ comment, onResolve, onReply, onDelete }: CommentThreadProps) {
+function CommentThread({ comment }: CommentThreadProps) {
   const [isReplying, setIsReplying] = useState(false)
   const [replyContent, setReplyContent] = useState("")
 
-  const handleReply = () => {
+  const addReplyMutation = useMutation(api.comments.addReply);
+  const toggleResolveCommentMutation = useMutation(api.comments.toggleResolveComment);
+  const deleteCommentMutation = useMutation(api.comments.deleteComment);
+
+  const handleReply = async () => {
     if (replyContent.trim()) {
-      onReply(comment.id, replyContent)
+      // IMPORTANT: Replace authorName, authorInitials, and optionally authorAvatar 
+      // with actual authenticated user data.
+      await addReplyMutation({
+        parentId: comment._id,
+        content: replyContent,
+        authorName: "Current User (You)", // Placeholder
+        authorInitials: "YU",          // Placeholder
+        // authorAvatar: "/path/to/user/avatar.png", // Optional
+      });
       setReplyContent("")
       setIsReplying(false)
     }
   }
+
+  const handleResolve = async () => {
+    await toggleResolveCommentMutation({ commentId: comment._id });
+  };
+
+  const handleDelete = async () => {
+    await deleteCommentMutation({ commentId: comment._id });
+  };
 
   return (
     <Card className={`w-full ${comment.resolved ? "opacity-70 bg-gray-50" : "bg-white"} shadow-sm border border-gray-200`}>
@@ -52,12 +118,12 @@ function CommentThread({ comment, onResolve, onReply, onDelete }: CommentThreadP
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3">
               <Avatar className="w-8 h-8">
-                <AvatarImage src={comment.author.avatar || "/placeholder.svg"} />
+                <AvatarImage src={comment.author.avatar} /> {/* Use transformed avatar */}
                 <AvatarFallback className="text-sm font-medium">{comment.author.initials}</AvatarFallback>
               </Avatar>
               <div className="flex flex-col">
                 <span className="text-sm font-semibold">{comment.author.name}</span>
-                <span className="text-xs text-gray-500">{comment.timestamp}</span>
+                <span className="text-xs text-gray-500">{new Date(comment.timestamp).toLocaleString()}</span>
               </div>
             </div>
             <DropdownMenu>
@@ -67,7 +133,7 @@ function CommentThread({ comment, onResolve, onReply, onDelete }: CommentThreadP
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => onResolve(comment.id)}>
+                <DropdownMenuItem onClick={handleResolve}>
                   {comment.resolved ? (
                     <>
                       <Cross2Icon className="h-4 w-4 mr-2" />
@@ -80,7 +146,7 @@ function CommentThread({ comment, onResolve, onReply, onDelete }: CommentThreadP
                     </>
                   )}
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onDelete(comment.id)} className="text-destructive">
+                <DropdownMenuItem onClick={handleDelete} className="text-destructive">
                   Delete
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -98,18 +164,19 @@ function CommentThread({ comment, onResolve, onReply, onDelete }: CommentThreadP
         </div>
 
         {/* Replies */}
-        {comment.replies.length > 0 && (
+        {comment.replies && comment.replies.length > 0 && (
           <div className="space-y-3 ml-6 pl-4 border-l-2 border-gray-200 mt-4">
             {comment.replies.map((reply) => (
-              <div key={reply.id} className="space-y-2 bg-gray-50 p-3 rounded-lg">
+              // Each reply is a full Comment object due to recursive transformation
+              <div key={reply._id.toString()} className="space-y-2 bg-gray-50 p-3 rounded-lg">
                 <div className="flex items-center gap-3">
                   <Avatar className="w-6 h-6">
-                    <AvatarImage src={reply.author.avatar || "/placeholder.svg"} />
+                    <AvatarImage src={reply.author.avatar} />
                     <AvatarFallback className="text-xs">{reply.author.initials}</AvatarFallback>
                   </Avatar>
                   <div className="flex flex-col">
                     <span className="text-xs font-medium">{reply.author.name}</span>
-                    <span className="text-xs text-gray-500">{reply.timestamp}</span>
+                    <span className="text-xs text-gray-500">{new Date(reply.timestamp).toLocaleString()}</span>
                   </div>
                 </div>
                 <p className="text-sm leading-relaxed text-gray-700 ml-9">{reply.content}</p>
@@ -155,134 +222,29 @@ function CommentThread({ comment, onResolve, onReply, onDelete }: CommentThreadP
 }
 
 export default function CommentsSystem({ src, name }: { src: string; name: string }) {
-  const [comments, setComments] = useState<Comment[]>([
-    {
-      id: "1",
-      author: {
-        name: "Sarah Chen",
-        avatar: "/placeholder.svg?height=32&width=32",
-        initials: "SC",
-      },
-      content:
-        "I think we should revise this section to be more concise. The current explanation might be too verbose for our target audience.",
-      timestamp: "2 hours ago",
-      resolved: false,
-      replies: [
-        {
-          id: "1-1",
-          author: {
-            name: "Alex Johnson",
-            avatar: "/placeholder.svg?height=32&width=32",
-            initials: "AJ",
-          },
-          content: "Good point! I'll work on shortening it while keeping the key information.",
-          timestamp: "1 hour ago",
-          resolved: false,
-          replies: [],
-        },
-      ],
-    },
-    {
-      id: "2",
-      author: {
-        name: "Mike Rodriguez",
-        avatar: "/placeholder.svg?height=32&width=32",
-        initials: "MR",
-      },
-      content: "The formatting looks great here. Nice work on the layout!",
-      timestamp: "3 hours ago",
-      resolved: true,
-      replies: [],
-    },
-    {
-      id: "3",
-      author: {
-        name: "Emily Davis",
-        avatar: "/placeholder.svg?height=32&width=32",
-        initials: "ED",
-      },
-      content:
-        "Should we add more examples to illustrate this concept? I think it would help readers understand better.",
-      timestamp: "4 hours ago",
-      resolved: false,
-      replies: [
-        {
-          id: "3-1",
-          author: {
-            name: "Sarah Chen",
-            avatar: "/placeholder.svg?height=32&width=32",
-            initials: "SC",
-          },
-          content: "I can provide a few real-world examples that would fit well here.",
-          timestamp: "3 hours ago",
-          resolved: false,
-          replies: [],
-        },
-        {
-          id: "3-2",
-          author: {
-            name: "Emily Davis",
-            avatar: "/placeholder.svg?height=32&width=32",
-            initials: "ED",
-          },
-          content: "Perfect! That would be really helpful.",
-          timestamp: "3 hours ago",
-          resolved: false,
-          replies: [],
-        },
-      ],
-    },
-  ])
+  // Fetch comments using useQuery. The data (commentsData) will be of type ConvexCommentItem[] | undefined.
+  const commentsData = useQuery(api.comments.getComments, { documentSrc: src });
+  const addCommentMutation = useMutation(api.comments.addComment);
+  // toggleResolveCommentMutation and deleteCommentMutation are used within CommentThread
 
   const [newComment, setNewComment] = useState("")
   const [showNewComment, setShowNewComment] = useState(false)
 
-  const handleResolve = (commentId: string) => {
-    setComments(
-      comments.map((comment) => (comment.id === commentId ? { ...comment, resolved: !comment.resolved } : comment)),
-    )
-  }
+  // Transform Convex data to the frontend Comment structure using useMemo
+  const comments: Comment[] = useMemo(() => transformConvexDataToFrontendComments(commentsData as ConvexCommentItem[] | undefined), [commentsData]);
 
-  const handleReply = (parentId: string, content: string) => {
-    const newReply: Comment = {
-      id: `${parentId}-${Date.now()}`,
-      author: {
-        name: "You",
-        avatar: "/placeholder.svg?height=32&width=32",
-        initials: "YU",
-      },
-      content,
-      timestamp: "Just now",
-      resolved: false,
-      replies: [],
-    }
-
-    setComments(
-      comments.map((comment) =>
-        comment.id === parentId ? { ...comment, replies: [...comment.replies, newReply] } : comment,
-      ),
-    )
-  }
-
-  const handleDelete = (commentId: string) => {
-    setComments(comments.filter((comment) => comment.id !== commentId))
-  }
-
-  const handleAddComment = () => {
+  const handleAddComment = async () => {
     if (newComment.trim()) {
-      const comment: Comment = {
-        id: Date.now().toString(),
-        author: {
-          name: "You",
-          avatar: "/placeholder.svg?height=32&width=32",
-          initials: "YU",
-        },
+      // IMPORTANT: Replace authorName, authorInitials, and optionally authorAvatar 
+      // with actual authenticated user data.
+      await addCommentMutation({
         content: newComment,
-        timestamp: "Just now",
-        resolved: false,
-        replies: [],
-      }
-      setComments([comment, ...comments])
+        authorName: "Current User (You)", // Placeholder
+        authorInitials: "YU",          // Placeholder
+        // authorAvatar: "/path/to/user/avatar.png", // Optional
+        documentSrc: src,
+        documentId: name, // Assuming 'name' prop can be used as documentId as per schema
+      });
       setNewComment("")
       setShowNewComment(false)
     }
@@ -351,11 +313,9 @@ export default function CommentsSystem({ src, name }: { src: string; name: strin
                     <div className="space-y-4">
                       {unresolvedComments.map((comment) => (
                         <CommentThread
-                          key={comment.id}
+                          key={comment._id.toString()}
                           comment={comment}
-                          onResolve={handleResolve}
-                          onReply={handleReply}
-                          onDelete={handleDelete}
+                          // documentSrc and documentId removed from props here
                         />
                       ))}
                     </div>
@@ -371,18 +331,16 @@ export default function CommentsSystem({ src, name }: { src: string; name: strin
                     <div className="space-y-4">
                       {resolvedComments.map((comment) => (
                         <CommentThread
-                          key={comment.id}
+                          key={comment._id.toString()}
                           comment={comment}
-                          onResolve={handleResolve}
-                          onReply={handleReply}
-                          onDelete={handleDelete}
+                           // documentSrc and documentId removed from props here
                         />
                       ))}
                     </div>
                   </div>
                 )}
 
-                {comments.length === 0 && (
+                {comments.length === 0 && !showNewComment && (
                   <div className="text-center py-12 text-gray-500">
                     <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-50" />
                     <p className="text-base">No comments yet</p>
