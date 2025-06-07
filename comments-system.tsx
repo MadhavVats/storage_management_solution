@@ -294,30 +294,30 @@ export default function CommentsSystem({ src, name }: { src: string; name: strin
   return (
     <div className="w-full h-screen p-6">
       <div className="flex gap-6 h-full">
-        {/* Main Content Area - 80% */}
-        <div className="w-4/5 pr-4">
+        {/* Main Content Area - 85% */}
+        <div className="w-[85%] pr-4">
           <div className="w-full h-full bg-gray-50 rounded-lg p-4">
             <AnnotatedImage src={src} alt={name} />
           </div>
         </div>
 
-        {/* Comments Sidebar - 20% */}
-        <div className="w-1/5 min-w-80 pl-4 border-l border-gray-200 flex flex-col h-full overflow-hidden">
+        {/* Comments Sidebar - 15% */}
+        <div className="w-[15%] min-w-80 border-l border-gray-200 flex flex-col h-full overflow-hidden">
+          <div className="flex items-center justify-between p-4 flex-shrink-0 border-b border-gray-200">
+            <h2 className="text-xl font-bold flex items-center gap-3">
+              <MessageSquare className="h-6 w-6 text-blue-600" />
+              Comments
+            </h2>
+            <Button 
+              size="sm" 
+              onClick={() => setShowNewComment(true)} 
+              className="h-9 px-4 bg-black hover:bg-gray-800 text-white"
+            >
+              Add Comment
+            </Button>
+          </div>
           <ScrollArea className="flex-1 h-full">
             <div className="p-4 space-y-6">
-              <div className="flex items-center justify-between flex-shrink-0">
-                <h2 className="text-xl font-bold flex items-center gap-3">
-                  <MessageSquare className="h-6 w-6 text-blue-600" />
-                  Comments
-                </h2>
-                <Button 
-                  size="sm" 
-                  onClick={() => setShowNewComment(true)} 
-                  className="h-9 px-4 bg-blue-600 hover:bg-blue-700"
-                >
-                  Add Comment
-                </Button>
-              </div>
 
               {/* New Comment Form */}
               {showNewComment && (
@@ -330,7 +330,7 @@ export default function CommentsSystem({ src, name }: { src: string; name: strin
                       className="min-h-[100px] border-blue-200 focus:border-blue-400"
                     />
                     <div className="flex gap-2">
-                      <Button size="sm" onClick={handleAddComment} className="bg-blue-600 hover:bg-blue-700">
+                      <Button size="sm" onClick={handleAddComment} className="bg-black hover:bg-gray-800 text-white">
                         Comment
                       </Button>
                       <Button size="sm" variant="ghost" onClick={() => setShowNewComment(false)}>

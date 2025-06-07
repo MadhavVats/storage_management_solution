@@ -28,7 +28,7 @@ export function AssetViewerDialog({
 }: AssetViewerDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-6xl max-h-[95vh] p-0 overflow-hidden flex flex-col">
+      <DialogContent className="max-w-[90vw] max-h-[95vh] p-0 overflow-hidden flex flex-col">
         <DialogTitle className="sr-only">
           {`Viewing ${name}`}
         </DialogTitle>
