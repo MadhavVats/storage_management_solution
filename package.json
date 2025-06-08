@@ -11,6 +11,7 @@
   "dependencies": {
     "@annotorious/annotorious": "^3.4.3",
     "@annotorious/react": "^3.3.6",
+    "@clerk/nextjs": "^6.21.0",
     "@hookform/resolvers": "^3.9.1",
     "@markerjs/markerjs3": "^3.5.8",
     "@mux/mux-node": "^11.0.2",
@@ -35,6 +36,7 @@
     "lucide-react": "^0.454.0",
     "next": "15.0.2",
     "node-appwrite": "^14.2.0",
+    "openseadragon": "^5.0.1",
     "react": "19.0.0-rc-02c0e824-20241028",
     "react-dom": "19.0.0-rc-02c0e824-20241028",
     "react-dropzone": "^14.3.5",

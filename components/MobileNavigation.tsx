@@ -6,6 +6,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { UserButton } from "@clerk/nextjs";
 import Image from "next/image";
 import React, { useState } from "react";
 import { usePathname } from "next/navigation";
@@ -13,9 +14,7 @@ import { Separator } from "@radix-ui/react-separator";
 import { navItems } from "@/constants";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
 import FileUploader from "@/components/FileUploader";
-import { signOutUser } from "@/lib/actions/user.actions";
 
 interface Props {
   $id: string;
@@ -103,19 +102,19 @@ const MobileNavigation = ({
 
           <div className="flex flex-col justify-between gap-5 pb-5">
             <FileUploader ownerId={ownerId} accountId={accountId} />
-            <Button
-              type="submit"
-              className="mobile-sign-out-button"
-              onClick={async () => await signOutUser()}
-            >
-              <Image
-                src="/assets/icons/logout.svg"
-                alt="logo"
-                width={24}
-                height={24}
+            <div className="flex items-center gap-2 p-4">
+              <UserButton 
+                appearance={{
+                  elements: {
+                    userButtonAvatarBox: "w-10 h-10",
+                    userButtonPopoverCard: "shadow-lg border",
+                    userButtonPopoverActionButton: "hover:bg-gray-50"
+                  }
+                }}
+                afterSignOutUrl="/sign-in"
               />
-              <p>Logout</p>
-            </Button>
+              <p className="text-sm font-medium">Account</p>
+            </div>
           </div>
         </SheetContent>
       </Sheet>

@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Models } from "node-appwrite";
+import { redirect } from "next/navigation";
 
 import { Chart } from "@/components/Chart";
 import { FormattedDateTime } from "@/components/FormattedDateTime";
@@ -8,8 +9,12 @@ import { Separator } from "@/components/ui/separator";
 import { getFiles, getTotalSpaceUsed } from "@/lib/actions/file.actions";
 import { convertFileSize, getUsageSummary } from "@/lib/utils";
 import { RecentFiles } from "@/components/dashboard/RecentFiles";
+import { requireAuth } from "@/lib/actions/clerk.actions";
 
 const Dashboard = async () => {
+  // Ensure user is authenticated before proceeding
+  await requireAuth();
+
   // Parallel requests
   const [files, totalSpace] = await Promise.all([
     getFiles({ types: [], limit: 10 }),

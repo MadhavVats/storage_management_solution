@@ -2,7 +2,7 @@
 
 import { constructConvexFileUrl, getFileType, parseStringify } from "@/lib/utils";
 import { revalidatePath } from "next/cache";
-import { getCurrentUser } from "@/lib/actions/user.actions";
+import { getCurrentUserFromClerk } from "@/lib/actions/clerk.actions";
 import { convex } from "@/lib/convex";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
@@ -32,10 +32,11 @@ export const uploadFile = async ({
     const { storageId } = await result.json();
 
     // Save file metadata to Convex database
+    const fileType = getFileType(file.name);
     const fileDocument = {
-      type: getFileType(file.name).type,
+      type: fileType.type as "document" | "image" | "video" | "audio" | "other",
       name: file.name,
-      extension: getFileType(file.name).extension,
+      extension: fileType.extension,
       size: file.size,
       storageId,
       owner: ownerId,
@@ -59,9 +60,9 @@ export const getFiles = async ({
   limit,
 }: GetFilesProps) => {
   try {
-    const currentUser = await getCurrentUser();
+    const currentUser = await getCurrentUserFromClerk();
 
-    if (!currentUser) throw new Error("User not found");
+    if (!currentUser) throw new Error("User not authenticated");
 
     const files = await convex.query(api.files.getUserFiles, {
       userEmail: currentUser.email,
@@ -138,8 +139,8 @@ export const deleteFile = async ({
 // ============================== TOTAL FILE SPACE USED
 export async function getTotalSpaceUsed() {
   try {
-    const currentUser = await getCurrentUser();
-    if (!currentUser) throw new Error("User is not authenticated.");
+    const currentUser = await getCurrentUserFromClerk();
+    if (!currentUser) throw new Error("User not authenticated");
 
     const totalSpace = await convex.query(api.files.getTotalSpaceUsed, {
       userId: currentUser.$id,

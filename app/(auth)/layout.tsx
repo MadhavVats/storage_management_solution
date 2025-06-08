@@ -41,7 +41,9 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
           />
         </div>
 
-        {children}
+        <div className="flex w-full max-w-md flex-col items-center justify-center">
+          {children}
+        </div>
       </section>
     </div>
   );

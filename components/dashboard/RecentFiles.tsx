@@ -14,11 +14,14 @@ export function RecentFiles({ files }: RecentFilesProps) {
   const { AssetViewer, openAsset } = useAssetViewer()
 
   const handleFileClick = (file: Models.Document) => {
-    openAsset(
-      file.url,
-      file.name,
-      getFileType(file.name, file.mimeType)
-    )
+    const fileType = getFileType(file.name, file.mimeType)
+    if (fileType) {
+      openAsset(
+        file.url,
+        file.name,
+        fileType
+      )
+    }
   }
 
   if (files.length === 0) {
