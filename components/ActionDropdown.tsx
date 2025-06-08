@@ -6,6 +6,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogDescription, // Added DialogDescription
 } from "@/components/ui/dialog";
 import {
   DropdownMenu,
@@ -23,6 +24,7 @@ import Link from "next/link";
 import { constructDownloadUrl } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label"; // Added Label
 import {
   deleteFile,
   renameFile,
@@ -34,7 +36,7 @@ import { FileDetails, ShareInput } from "@/components/ActionsModalContent";
 const ActionDropdown = ({ file }: { file: Models.Document }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [action, setAction] = useState<ActionType | null>(null);
+  const [action, setAction] = useState<ActionType | null>(null); // Defined ActionType here
   const [name, setName] = useState(file.name);
   const [isLoading, setIsLoading] = useState(false);
   const [emails, setEmails] = useState<string[]>([]);
@@ -94,53 +96,80 @@ const ActionDropdown = ({ file }: { file: Models.Document }) => {
             {label}
           </DialogTitle>
           {value === "rename" && (
-            <Input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
-          )}
-          {value === "details" && <FileDetails file={file} />}
-          {value === "share" && (
-            <ShareInput
-              file={file}
-              onInputChange={setEmails}
-              onRemove={handleRemoveUser}
-            />
-          )}
-          {value === "delete" && (
-            <p className="delete-confirmation">
-              Are you sure you want to delete{` `}
-              <span className="delete-file-name">{file.name}</span>?
-            </p>
+            <DialogDescription className="text-center">
+              Enter the new name for the file below.
+            </DialogDescription>
           )}
         </DialogHeader>
-        {["rename", "delete", "share"].includes(value) && (
-          <DialogFooter className="flex flex-col gap-3 md:flex-row">
-            <Button onClick={closeAllModals} className="modal-cancel-button">
-              Cancel
-            </Button>
-            <Button onClick={handleAction} className="modal-submit-button">
-              <p className="capitalize">{value}</p>
-              {isLoading && (
-                <Image
-                  src="/assets/icons/loader.svg"
-                  alt="loader"
-                  width={24}
-                  height={24}
-                  className="animate-spin"
-                />
-              )}
-            </Button>
-          </DialogFooter>
+        {value === "rename" && (
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="fileName" className="text-right text-light-100">
+                New Name
+              </Label>
+              <Input
+                id="fileName"
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="col-span-3"
+              />
+            </div>
+          </div>
         )}
+        {value === "details" && <FileDetails file={file} />}
+        {value === "share" && (
+          <ShareInput
+            file={file}
+            onInputChange={setEmails}
+            onRemove={handleRemoveUser}
+          />
+        )}
+        {value === "delete" && (
+          <p className="delete-confirmation">
+            Are you sure you want to delete{` `}
+            <span className="delete-file-name">{file.name}</span>?
+          </p>
+        )}
+        <DialogFooter className="flex flex-col gap-3 md:flex-row">
+          <Button onClick={closeAllModals} className="modal-cancel-button">
+            Cancel
+          </Button>
+          <Button onClick={handleAction} className="modal-submit-button">
+            <p className="capitalize">{value}</p>
+            {isLoading && (
+              <Image
+                src="/assets/icons/loader.svg"
+                alt="loader"
+                width={24}
+                height={24}
+                className="animate-spin"
+              />
+            )}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     );
   };
 
   return (
-    <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-      <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
+    <Dialog
+      open={isModalOpen}
+      onOpenChange={(newOpenState) => {
+        setIsModalOpen(newOpenState);
+        if (!newOpenState) {
+          // Dialog is closing, reset other relevant states
+          setIsDropdownOpen(false); // Ensure dropdown is also closed
+          setAction(null);
+          setName(file.name); // Reset name, important for rename dialog
+          // setEmails([]); // Consider resetting if emails state persists undesirably
+        }
+      }}
+    >
+      <DropdownMenu
+        open={isDropdownOpen}
+        onOpenChange={setIsDropdownOpen}
+      >
         <DropdownMenuTrigger className="shad-no-focus">
           <Image
             src="/assets/icons/dots.svg"
@@ -154,45 +183,42 @@ const ActionDropdown = ({ file }: { file: Models.Document }) => {
             {file.name}
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
-          {actionsDropdownItems.map((actionItem) => (
+          {actionsDropdownItems.map((item) => (
             <DropdownMenuItem
-              key={actionItem.value}
-              className="shad-dropdown-item"
-              onClick={() => {
-                setAction(actionItem);
-
-                if (
-                  ["rename", "share", "delete", "details"].includes(
-                    actionItem.value,
-                  )
-                ) {
+              key={item.value}
+              className="flex cursor-pointer items-center gap-2"
+              onClick={(e) => {
+                e.stopPropagation(); // Stop event propagation
+                setAction(item);
+                if (item.value !== "download") {
                   setIsModalOpen(true);
+                  setIsDropdownOpen(false); // Explicitly close dropdown when dialog opens
                 }
               }}
             >
-              {actionItem.value === "download" ? (
+              {item.value === "download" ? (
                 <Link
                   href={file.url || constructDownloadUrl(file.bucketFileId)}
                   download={file.name}
                   className="flex items-center gap-2"
                 >
                   <Image
-                    src={actionItem.icon}
-                    alt={actionItem.label}
+                    src={item.icon}
+                    alt={item.label}
                     width={30}
                     height={30}
                   />
-                  {actionItem.label}
+                  {item.label}
                 </Link>
               ) : (
                 <div className="flex items-center gap-2">
                   <Image
-                    src={actionItem.icon}
-                    alt={actionItem.label}
+                    src={item.icon}
+                    alt={item.label}
                     width={30}
                     height={30}
                   />
-                  {actionItem.label}
+                  {item.label}
                 </div>
               )}
             </DropdownMenuItem>
@@ -204,4 +230,12 @@ const ActionDropdown = ({ file }: { file: Models.Document }) => {
     </Dialog>
   );
 };
+
+// Define ActionType within the file
+interface ActionType {
+  label: string;
+  icon: string;
+  value: string;
+}
+
 export default ActionDropdown;
