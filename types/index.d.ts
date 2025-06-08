@@ -38,7 +38,8 @@ declare interface UpdateFileUsersProps {
 }
 declare interface DeleteFileProps {
   fileId: string;
-  bucketFileId: string;
+  bucketFileId?: string; // Optional for backward compatibility with Appwrite
+  storageId?: string; // Optional for Convex
   path: string;
 }
 

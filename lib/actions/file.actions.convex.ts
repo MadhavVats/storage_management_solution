@@ -32,11 +32,10 @@ export const uploadFile = async ({
     const { storageId } = await result.json();
 
     // Save file metadata to Convex database
-    const fileType = getFileType(file.name);
     const fileDocument = {
-      type: fileType.type as "document" | "image" | "video" | "audio" | "other",
+      type: getFileType(file.name).type,
       name: file.name,
-      extension: fileType.extension,
+      extension: getFileType(file.name).extension,
       size: file.size,
       storageId,
       owner: ownerId,

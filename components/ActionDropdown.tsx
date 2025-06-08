@@ -59,7 +59,7 @@ const ActionDropdown = ({ file }: { file: Models.Document }) => {
         renameFile({ fileId: file.$id, name, extension: file.extension, path }),
       share: () => updateFileUsers({ fileId: file.$id, emails, path }),
       delete: () =>
-        deleteFile({ fileId: file.$id, bucketFileId: file.bucketFileId, path }),
+        deleteFile({ fileId: file.$id, storageId: file.storageId, path }),
     };
 
     success = await actions[action.value as keyof typeof actions]();
@@ -172,7 +172,7 @@ const ActionDropdown = ({ file }: { file: Models.Document }) => {
             >
               {actionItem.value === "download" ? (
                 <Link
-                  href={constructDownloadUrl(file.bucketFileId)}
+                  href={file.url || constructDownloadUrl(file.bucketFileId)}
                   download={file.name}
                   className="flex items-center gap-2"
                 >

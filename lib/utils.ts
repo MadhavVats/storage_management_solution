@@ -172,7 +172,7 @@ export const getFileIcon = (
   }
 };
 
-// APPWRITE URL UTILS
+// APPWRITE URL UTILS (Legacy - keeping for backward compatibility)
 // Construct appwrite file URL - https://appwrite.io/docs/apis/rest#images
 export const constructFileUrl = (bucketFileId: string) => {
   return `${process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT}/storage/buckets/${process.env.NEXT_PUBLIC_APPWRITE_BUCKET}/files/${bucketFileId}/view?project=${process.env.NEXT_PUBLIC_APPWRITE_PROJECT}`;
@@ -180,6 +180,12 @@ export const constructFileUrl = (bucketFileId: string) => {
 
 export const constructDownloadUrl = (bucketFileId: string) => {
   return `${process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT}/storage/buckets/${process.env.NEXT_PUBLIC_APPWRITE_BUCKET}/files/${bucketFileId}/download?project=${process.env.NEXT_PUBLIC_APPWRITE_PROJECT}`;
+};
+
+// CONVEX URL UTILS
+// The file URL from Convex is already provided by the storage API
+export const constructConvexFileUrl = (fileUrl: string) => {
+  return fileUrl; // Convex storage provides the full URL directly
 };
 
 // DASHBOARD UTILS

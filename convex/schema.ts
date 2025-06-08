@@ -2,6 +2,32 @@ import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 
 export default defineSchema({
+  // File storage and management
+  files: defineTable({
+    // File metadata
+    name: v.string(),
+    type: v.union(v.literal("document"), v.literal("image"), v.literal("video"), v.literal("audio"), v.literal("other")),
+    extension: v.string(),
+    size: v.number(),
+    url: v.string(), // Convex file URL
+    
+    // File storage reference
+    storageId: v.string(), // Convex storage ID
+    
+    // Ownership and access control
+    owner: v.string(), // User ID who owns the file
+    accountId: v.string(), // Account ID for organization
+    users: v.array(v.string()), // Array of user emails who have access
+  })
+    .index("by_owner", ["owner"])
+    .index("by_type", ["type"])
+    .index("by_accountId", ["accountId"])
+    .index("by_owner_and_type", ["owner", "type"])
+    .searchIndex("search_files", {
+      searchField: "name",
+      filterFields: ["type", "owner", "accountId"]
+    }),
+
   comments: defineTable({
     // Comment content and metadata
     content: v.string(),

@@ -17,8 +17,7 @@ export function RecentFiles({ files }: RecentFilesProps) {
     openAsset(
       file.url,
       file.name,
-      getFileType(file.name, file.mimeType),
-      file.mimeType
+      getFileType(file.name, file.mimeType)
     )
   }
 
@@ -28,7 +27,7 @@ export function RecentFiles({ files }: RecentFilesProps) {
 
   return (
     <>
-      <ul className="mt-5 flex flex-col gap-5">
+      <div className="mt-5 flex flex-col gap-5">
         {files.map((file: Models.Document) => (
           <div 
             key={file.$id} 
@@ -55,7 +54,7 @@ export function RecentFiles({ files }: RecentFilesProps) {
             </div>
           </div>
         ))}
-      </ul>
+      </div>
       <AssetViewer />
     </>
   )
