@@ -47,6 +47,73 @@ export const createFile = mutation({
   },
 });
 
+// Create file record for Mux video upload
+export const createMuxFile = mutation({
+  args: {
+    name: v.string(),
+    size: v.number(),
+    storageId: v.string(),
+    owner: v.string(),
+    accountId: v.string(),
+    users: v.optional(v.array(v.string())),
+    muxUploadId: v.string(),
+    muxAssetId: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    // Get the file URL from storage
+    const url = await ctx.storage.getUrl(args.storageId);
+    
+    if (!url) {
+      throw new Error("Failed to get file URL");
+    }
+
+    // Create file document with Mux fields
+    const fileId = await ctx.db.insert("files", {
+      name: args.name,
+      type: "video",
+      extension: "mp4", // Default for Mux videos
+      size: args.size,
+      url,
+      storageId: args.storageId,
+      owner: args.owner,
+      accountId: args.accountId,
+      users: args.users || [],
+      muxUploadId: args.muxUploadId,
+      muxAssetId: args.muxAssetId,
+      muxStatus: "preparing",
+    });
+
+    return fileId;
+  },
+});
+
+// Update Mux file status and metadata
+export const updateMuxFile = mutation({
+  args: {
+    fileId: v.id("files"),
+    muxAssetId: v.optional(v.string()),
+    muxPlaybackId: v.optional(v.string()),
+    muxStatus: v.optional(v.union(
+      v.literal("preparing"), 
+      v.literal("ready"), 
+      v.literal("errored")
+    )),
+    muxThumbnail: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const { fileId, ...updateData } = args;
+    
+    // Filter out undefined values
+    const updates = Object.fromEntries(
+      Object.entries(updateData).filter(([_, value]) => value !== undefined)
+    );
+
+    await ctx.db.patch(fileId, updates);
+    
+    return await ctx.db.get(fileId);
+  },
+});
+
 // Get files for a user
 export const getFiles = query({
   args: {
@@ -281,5 +348,24 @@ export const searchFiles = query({
     searchQuery = searchQuery.filter((q) => q.eq(q.field("owner"), args.userId));
 
     return await searchQuery.collect();
+  },
+});
+
+// Get files that need Mux status polling (videos in preparing state)
+export const getFilesNeedingMuxPolling = query({
+  args: {
+    owner: v.string(),
+  },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("files")
+      .withIndex("by_owner", (q) => q.eq("owner", args.owner))
+      .filter((q) => 
+        q.and(
+          q.eq(q.field("type"), "video"),
+          q.eq(q.field("muxStatus"), "preparing")
+        )
+      )
+      .collect();
   },
 });

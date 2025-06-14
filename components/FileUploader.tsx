@@ -9,7 +9,7 @@ import Image from "next/image";
 import Thumbnail from "@/components/Thumbnail";
 import { MAX_FILE_SIZE } from "@/constants";
 import { useToast } from "@/hooks/use-toast";
-import { uploadFile } from "@/lib/actions/file.actions";
+import { uploadFile } from "@/lib/actions/file.actions.convex";
 import { usePathname } from "next/navigation";
 
 interface Props {

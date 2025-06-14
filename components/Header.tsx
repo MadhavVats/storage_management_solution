@@ -1,7 +1,7 @@
 import React from "react";
 import { UserButton } from "@clerk/nextjs";
 import Search from "@/components/Search";
-import FileUploader from "@/components/FileUploader";
+import UploadActions from "@/components/UploadActions";
 
 const Header = ({
   userId,
@@ -14,7 +14,7 @@ const Header = ({
     <header className="header">
       <Search />
       <div className="header-wrapper">
-        <FileUploader ownerId={userId} accountId={accountId} />
+        <UploadActions ownerId={userId} accountId={accountId} />
         <UserButton 
           appearance={{
             elements: {

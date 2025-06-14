@@ -5,6 +5,7 @@ import Sidebar from "@/components/Sidebar";
 import MobileNavigation from "@/components/MobileNavigation";
 import Header from "@/components/Header";
 import { Toaster } from "@/components/ui/toaster";
+import MuxPollingProvider from "@/components/MuxPollingProvider";
 
 export const dynamic = "force-dynamic";
 
@@ -32,15 +33,17 @@ const Layout = async ({ children }: { children: React.ReactNode }) => {
 
   return (
     <main className="flex h-screen">
-      <Sidebar {...userData} />
+      <MuxPollingProvider>
+        <Sidebar {...userData} />
 
-      <section className="flex h-full flex-1 flex-col">
-        <MobileNavigation {...userData} />
-        <Header userId={userData.$id} accountId={userData.accountId} />
-        <div className="main-content">{children}</div>
-      </section>
+        <section className="flex h-full flex-1 flex-col">
+          <MobileNavigation {...userData} />
+          <Header userId={userData.$id} accountId={userData.accountId} />
+          <div className="main-content">{children}</div>
+        </section>
 
-      <Toaster />
+        <Toaster />
+      </MuxPollingProvider>
     </main>
   );
 };

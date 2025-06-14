@@ -14,7 +14,7 @@ import { Separator } from "@radix-ui/react-separator";
 import { navItems } from "@/constants";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import FileUploader from "@/components/FileUploader";
+import UploadActions from "@/components/UploadActions";
 
 interface Props {
   $id: string;
@@ -101,7 +101,7 @@ const MobileNavigation = ({
           <Separator className="my-5 bg-light-200/20" />
 
           <div className="flex flex-col justify-between gap-5 pb-5">
-            <FileUploader ownerId={ownerId} accountId={accountId} />
+            <UploadActions ownerId={ownerId} accountId={accountId} />
             <div className="flex items-center gap-2 p-4">
               <UserButton 
                 appearance={{

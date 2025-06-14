@@ -14,6 +14,17 @@ export default defineSchema({
     // File storage reference
     storageId: v.string(), // Convex storage ID
     
+    // Mux video-specific fields
+    muxAssetId: v.optional(v.string()), // Mux asset ID for videos
+    muxPlaybackId: v.optional(v.string()), // Mux playback ID for streaming
+    muxStatus: v.optional(v.union(
+      v.literal("preparing"), 
+      v.literal("ready"), 
+      v.literal("errored")
+    )), // Mux processing status
+    muxUploadId: v.optional(v.string()), // Mux upload ID for tracking
+    muxThumbnail: v.optional(v.string()), // Thumbnail URL from Mux
+    
     // Ownership and access control
     owner: v.string(), // User ID who owns the file
     accountId: v.string(), // Account ID for organization

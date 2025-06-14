@@ -29,26 +29,29 @@ import {
   deleteFile,
   renameFile,
   updateFileUsers,
-} from "@/lib/actions/file.actions";
+} from "@/lib/actions/file.actions.convex";
 import { usePathname } from "next/navigation";
 import { FileDetails, ShareInput } from "@/components/ActionsModalContent";
+import { FileDocument } from "@/types/file";
 
-const ActionDropdown = ({ file }: { file: Models.Document }) => {
+const ActionDropdown = ({ file }: { file: FileDocument }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [action, setAction] = useState<ActionType | null>(null); // Defined ActionType here
+  const [action, setAction] = useState<ActionType | null>(null);
   const [name, setName] = useState(file.name);
   const [isLoading, setIsLoading] = useState(false);
   const [emails, setEmails] = useState<string[]>([]);
 
   const path = usePathname();
 
+  // Get the correct file ID (Convex uses _id, Appwrite uses $id)
+  const fileId = file._id || file.$id || '';
+
   const closeAllModals = () => {
     setIsModalOpen(false);
     setIsDropdownOpen(false);
     setAction(null);
     setName(file.name);
-    //   setEmails([]);
   };
 
   const handleAction = async () => {
@@ -58,10 +61,10 @@ const ActionDropdown = ({ file }: { file: Models.Document }) => {
 
     const actions = {
       rename: () =>
-        renameFile({ fileId: file.$id, name, extension: file.extension, path }),
-      share: () => updateFileUsers({ fileId: file.$id, emails, path }),
+        renameFile({ fileId, name, extension: file.extension, path }),
+      share: () => updateFileUsers({ fileId, emails, path }),
       delete: () =>
-        deleteFile({ fileId: file.$id, storageId: file.storageId, path }),
+        deleteFile({ fileId, storageId: file.storageId, path }),
     };
 
     success = await actions[action.value as keyof typeof actions]();
@@ -75,7 +78,7 @@ const ActionDropdown = ({ file }: { file: Models.Document }) => {
     const updatedEmails = emails.filter((e) => e !== email);
 
     const success = await updateFileUsers({
-      fileId: file.$id,
+      fileId,
       emails: updatedEmails,
       path,
     });

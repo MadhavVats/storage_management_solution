@@ -8,6 +8,7 @@ import {
 } from "./ui/dialog"
 import { AnnotatedImage } from "./annotated-image"
 import CommentsSystem from "../comments-system"
+import { MuxVideoPlayer } from "./MuxVideoPlayer"
 
 type AssetType = 'image' | 'video'
 
@@ -17,6 +18,9 @@ interface AssetViewerDialogProps {
   src: string
   name: string
   type: AssetType
+  muxPlaybackId?: string
+  muxStatus?: 'preparing' | 'ready' | 'errored'
+  muxThumbnail?: string
 }
 
 export function AssetViewerDialog({
@@ -25,6 +29,9 @@ export function AssetViewerDialog({
   src,
   name,
   type,
+  muxPlaybackId,
+  muxStatus,
+  muxThumbnail,
 }: AssetViewerDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -37,14 +44,27 @@ export function AssetViewerDialog({
             <CommentsSystem src={src} name={name} />
           ) : (
             <div className="w-full h-full flex items-center justify-center p-6">
-              <video
-                src={src}
-                controls
-                className="max-w-full max-h-full object-contain"
-                controlsList="nodownload"
-              >
-                Your browser does not support the video tag.
-              </video>
+              {muxPlaybackId ? (
+                <MuxVideoPlayer
+                  playbackId={muxPlaybackId}
+                  muxStatus={muxStatus || 'ready'}
+                  thumbnail={muxThumbnail}
+                  title={name}
+                  className="w-full h-full"
+                  metadata={{
+                    video_title: name,
+                  }}
+                />
+              ) : (
+                <video
+                  src={src}
+                  controls
+                  className="max-w-full max-h-full object-contain"
+                  controlsList="nodownload"
+                >
+                  Your browser does not support the video tag.
+                </video>
+              )}
             </div>
           )}
         </div>
@@ -59,10 +79,20 @@ export function useAssetViewer() {
     src: string
     name: string
     type: AssetType
+    muxPlaybackId?: string
+    muxStatus?: 'preparing' | 'ready' | 'errored'
+    muxThumbnail?: string
   } | null>(null)
 
-  const openAsset = (src: string, name: string, type: AssetType) => {
-    setAsset({ src, name, type })
+  const openAsset = (
+    src: string, 
+    name: string, 
+    type: AssetType, 
+    muxPlaybackId?: string,
+    muxStatus?: 'preparing' | 'ready' | 'errored',
+    muxThumbnail?: string
+  ) => {
+    setAsset({ src, name, type, muxPlaybackId, muxStatus, muxThumbnail })
     setIsOpen(true)
   }
 
@@ -82,6 +112,9 @@ export function useAssetViewer() {
         src={asset.src}
         name={asset.name}
         type={asset.type}
+        muxPlaybackId={asset.muxPlaybackId}
+        muxStatus={asset.muxStatus}
+        muxThumbnail={asset.muxThumbnail}
       />
     )
   }

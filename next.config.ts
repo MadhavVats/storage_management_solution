@@ -43,6 +43,16 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "www.gravatar.com",
       },
+      // Mux image domains for video thumbnails
+      {
+        protocol: "https",
+        hostname: "image.mux.com",
+      },
+      // Mux streaming domains for video playback
+      {
+        protocol: "https",
+        hostname: "stream.mux.com",
+      },
     ],
   },
 };
